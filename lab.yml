@@ -1,0 +1,203 @@
+title: "Lab 3 — Introduction to APIs"
+course: "Software Defined Networking"
+module: "Network Automation Fundamentals"
+lab_number: 3
+time_estimate: "1.5–2 hours"
+
+objectives:
+  - "Define what an API is and why HTTP APIs matter for modern software and networking."
+  - "Identify URL, method, headers, body, and status code in HTTP requests/responses."
+  - "Use cURL to make GET requests (plain + JSON), enable verbose output, and redirect to files."
+  - "Pretty-print and summarize JSON responses for human-readable artifacts."
+  - "Use Postman to build requests, save a collection, and compare cURL vs Postman."
+  - "Explain API authentication and demonstrate 401 vs 200 with a bearer token example."
+
+python_version: "3.11"
+accounts: ["GitHub"]
+devices: ["Public APIs (Dad Jokes, Deck of Cards)"]
+
+deliverables:
+  readme_summary: "Consistent README with objectives, deliverables, grading, troubleshooting."
+  instructions_summary: "Stepwise instructions using cURL and Postman; logs + artifacts present."
+
+grading:
+  total_points: 75
+  rows:
+    - { step: "Tooling", requirement: "`curl` installed & verified (TOOL_OK: curl in log)", points: 5 }
+    - { step: "Dad Jokes (plain)", requirement: "Saved to `data/raw/dadjoke_plain.txt`", points: 5 }
+    - { step: "Dad Jokes (JSON)", requirement: "Saved to `data/raw/dadjoke_json.txt` with Accept header", points: 5 }
+    - { step: "Verbose", requirement: "Saved to `data/raw/dadjoke_verbose.txt` showing status + headers", points: 5 }
+    - { step: "Pretty-print", requirement: "Saved to `data/reports/dadjoke_pretty.json`", points: 4 }
+    - { step: "Deck create", requirement: "`data/raw/deck_newdeck.json` includes `deck_id`", points: 8 }
+    - { step: "Deck draw", requirement: "`data/raw/deck_draw.json` uses same `deck_id`", points: 8 }
+    - { step: "Deck summary", requirement: "`data/reports/deck_summary.txt` (value + suit)", points: 5 }
+    - { step: "Logs", requirement: "`logs/curl_activity.log` includes LAB3_START/LAB3_END, REQUEST_OK lines, SHA256, and 401 + 200 auth demo", points: 10 }
+    - { step: "Postman collection", requirement: "`postman/API_Lab_Collection.json` with required requests", points: 10 }
+    - { step: "Screenshots", requirement: "`screens/*` (3 screenshots) show correct requests & responses", points: 10 }
+
+tips:
+  - title: "cURL not found"
+    symptom: "`curl: command not found`"
+    fix: "Install cURL (`sudo apt install curl`) or use the dev container."
+  - title: "HTML instead of JSON"
+    symptom: "Dad Jokes request prints HTML"
+    fix: "Add header `-H 'Accept: application/json'`."
+  - title: "No status code/headers"
+    symptom: "Output lacks status or headers"
+    fix: "Use `-v` for verbose output or `-i` for headers."
+  - title: "401 Unauthorized"
+    symptom: "Auth demo returns 401"
+    fix: "Add `Authorization: Bearer <token>` or use Postman’s Authorization tab."
+  - title: "deck_id not found"
+    symptom: "Draw step fails"
+    fix: "Create a new deck first; copy `deck_id` or store it as a variable."
+  - title: "Unreadable JSON"
+    symptom: "One-line JSON"
+    fix: "Pipe through `jq` or format in VS Code."
+
+autograder:
+  log_path: "logs/curl_activity.log"
+  required_markers:
+    - "LAB3_START"
+    - "[STEP 2] Dev Container Started"
+    - "TOOL_OK: curl"
+    - "TOOL_OK: jq"
+    - "REQUEST_OK: dadjoke_plain"
+    - "REQUEST_OK: dadjoke_json"
+    - "REQUEST_OK: dadjoke_verbose"
+    - "REQUEST_OK: deck_create"
+    - "REQUEST_OK: deck_draw"
+    - "STATUS_CODE: 200"
+    - "STATUS_CODE: 401"
+    - "AUTH_401"
+    - "AUTH_200"
+    - "SHA256"
+    - "PRETTY_OK: data/reports/dadjoke_pretty.json"
+    - "SUMMARY_OK: data/reports/deck_summary.txt"
+    - "LAB3_END"
+
+license: "© 2025 Your Name — Classroom use."
+
+overview: >
+  Learn API fundamentals using cURL and Postman. Practice plain vs JSON responses, verbose
+  headers/status inspection, multi-step workflows with Deck of Cards, and a simple auth demo.
+  Produce clean artifacts (raw outputs, pretty JSON, summaries, screenshots) and a Postman
+  collection—skills you’ll reuse with Python `requests` in later labs.
+
+before_you_begin: >
+  Ensure the dev container opens and network access works (DNS + HTTPS). Confirm `curl` and `jq`
+  versions; install `jq` if needed. Sign into Postman (desktop or web).
+
+resources:
+  - { title: "Dad Jokes API", url: "https://icanhazdadjoke.com/api", note: "Use Accept: application/json for JSON output." }
+  - { title: "Deck of Cards API", url: "https://deckofcardsapi.com/", note: "Create deck, then draw using the same deck_id." }
+  - { title: "curl docs", url: "https://curl.se/docs/manpage.html", note: "Flags: -v (verbose), -i (headers), -H (header), -o (output)." }
+  - { title: "HTTP status codes", url: "https://developer.mozilla.org/en-US/docs/Web/HTTP/Status" }
+  - { title: "jq", url: "https://stedolan.github.io/jq/" }
+  - { title: "Postman", url: "https://www.postman.com/" }
+
+faq:
+  - q: "Do I need a real token for the auth demo?"
+    a: "No. Use a safe demo endpoint or a placeholder token to show 401 vs 200 behavior."
+  - q: "Where do outputs go?"
+    a: "Raw under `data/raw/`, pretty JSON and summaries under `data/reports/`, logs under `logs/`, screenshots under `screens/`."
+  - q: "How do I keep `deck_id` consistent?"
+    a: "Save the first response and copy the `deck_id` manually, or use a Postman variable."
+
+submission_checklist:
+  - "data/raw/dadjoke_plain.txt present"
+  - "data/raw/dadjoke_json.txt present"
+  - "data/raw/dadjoke_verbose.txt present"
+  - "data/raw/deck_newdeck.json contains deck_id"
+  - "data/raw/deck_draw.json present and matches deck_id"
+  - "data/reports/dadjoke_pretty.json present"
+  - "data/reports/deck_summary.txt present (value + suit)"
+  - "logs/curl_activity.log includes LAB3_START/LAB3_END, REQUEST_OK, SHA256, 401 + 200"
+  - "postman/API_Lab_Collection.json exported"
+  - "screens/postman_dadjoke.png, screens/postman_deckdraw.png, screens/postman_auth.png present"
+
+steps:
+  - title: "Clone the Repository"
+    goal: "Get your Classroom repo locally."
+    actions: "Clone and `cd` into the repo."
+    done_when: "You’re in the repo folder and `git status` is clean."
+    log_marker: "LAB3_START"
+
+  - title: "Open a Dev Container"
+    goal: "Use the standardized environment."
+    actions: "Reopen in container; wait for install to complete."
+    done_when: "Dev container status shows READY; tools run."
+    log_marker: "[STEP 2] Dev Container Started"
+
+  - title: "Install & Verify Tools"
+    goal: "Ensure `curl` and `jq` run; Postman installed."
+    actions: "Check versions; install `jq` if missing; sign into Postman."
+    done_when: "Log shows TOOL_OK: curl and TOOL_OK: jq."
+    log_marker: "TOOL_OK"
+
+  - title: "Warm-up: What is an HTTP API?"
+    goal: "Identify URL/method/headers/body/status."
+    actions: "Pick any public API and write down the parts (theory only)."
+    done_when: "You can name all five parts."
+    log_marker: "THEORY_OK"
+
+  - title: "cURL #1 — Dad Jokes (plain)"
+    goal: "Make a simple GET."
+    actions: "Call Dad Jokes with no headers; save to `data/raw/dadjoke_plain.txt`."
+    done_when: "File exists and is non-empty."
+    log_marker: "REQUEST_OK: dadjoke_plain"
+
+  - title: "cURL #2 — JSON"
+    goal: "Request JSON with Accept header."
+    actions: "Add `-H 'Accept: application/json'`; save to `data/raw/dadjoke_json.txt`."
+    done_when: "File exists and contains JSON."
+    log_marker: "REQUEST_OK: dadjoke_json"
+
+  - title: "cURL #3 — Verbose"
+    goal: "Inspect status code + headers."
+    actions: "Repeat JSON request with `-v`; save to `data/raw/dadjoke_verbose.txt`."
+    done_when: "File shows headers and a status (expect 200)."
+    log_marker: "REQUEST_OK: dadjoke_verbose"
+
+  - title: "cURL #4 — Pretty-print JSON"
+    goal: "Make JSON human-readable."
+    actions: "Pretty-print the JSON to `data/reports/dadjoke_pretty.json` (e.g., `jq`)."
+    done_when: "Pretty file exists; log `PRETTY_OK`."
+    log_marker: "PRETTY_OK: data/reports/dadjoke_pretty.json"
+
+  - title: "cURL #5 — Key fields"
+    goal: "Extract a meaningful field."
+    actions: "Record `id` or `joke` in the log under `KEY_FIELDS`; include a SHA256 for one artifact."
+    done_when: "Log shows `KEY_FIELDS` and `SHA256` lines."
+    log_marker: "SHA256"
+
+  - title: "cURL #6 — Deck of Cards (create + draw)"
+    goal: "Demonstrate multi-step workflow."
+    actions: "Create deck → save `data/raw/deck_newdeck.json` → extract `deck_id` → draw cards → save `data/raw/deck_draw.json` → summarize to `data/reports/deck_summary.txt`."
+    done_when: "Both JSON files exist; summary has value + suit."
+    log_marker: "REQUEST_OK: deck_create, REQUEST_OK: deck_draw"
+
+  - title: "Postman intro"
+    goal: "Recreate cURL requests in a GUI."
+    actions: "Make a collection with Dad Jokes, Deck Create, Deck Draw; use a variable for `deck_id`."
+    done_when: "Collection exported to `postman/API_Lab_Collection.json`."
+    log_marker: "POSTMAN_OK"
+
+  - title: "Postman ↔︎ cURL parity"
+    goal: "See equivalence of tools."
+    actions: "Export a request as cURL; compare flags/headers."
+    done_when: "You can explain the mapping."
+    log_marker: "PARITY_OK"
+
+  - title: "Authentication demo"
+    goal: "Show 401 vs 200 with headers."
+    actions: "Call a safe demo endpoint without auth (expect 401) → add `Authorization: Bearer <token>` (expect 200)."
+    done_when: "Log shows `AUTH_401` and `AUTH_200` plus status lines."
+    log_marker: "AUTH_401, AUTH_200"
+
+  - title: "Wrap-up & Submit"
+    goal: "Ensure artifacts + logs match checklist."
+    actions: "Verify deliverables and screenshots; push branch and open PR."
+    done_when: "Repo contains all required files; Actions run is green."
+    log_marker: "LAB3_END"
+
