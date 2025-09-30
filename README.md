@@ -90,3 +90,5 @@ Learn API fundamentals using cURL and Postman. Practice plain vs JSON responses,
 
 ## License
 © 2025 Your Name — Classroom use.
+
+# HAPPY CODING!
