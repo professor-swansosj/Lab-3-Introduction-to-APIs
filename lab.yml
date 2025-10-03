@@ -41,7 +41,7 @@ repo_tree:
     - "logs"
     - "screens"
 
-readme_topics:
+readme_topic:
   - title: "Getting Started with cURL"
     content: > 
       cURL is a command-line tool for making HTTP requests. It supports various protocols and is 
