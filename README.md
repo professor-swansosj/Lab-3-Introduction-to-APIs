@@ -96,4 +96,4 @@ When making authenticated requests, ensure that you include the necessary header
 
 
 ## License
-© 2025 Your Name — Classroom use.
+© 2025 Sheldon Swanson — Classroom use.
