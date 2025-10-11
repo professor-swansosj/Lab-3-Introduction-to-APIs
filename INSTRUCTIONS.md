@@ -1,270 +1,233 @@
 # Instructions — Lab 3 — Introduction to APIs
 
 ## Objectives
-- Define what an API is and why HTTP APIs matter for modern software and networking.
-- Identify URL, method, headers, body, and status code in HTTP requests/responses.
-- Use cURL to make GET requests (plain + JSON), enable verbose output, and redirect to files.
-- Pretty-print and summarize JSON responses for human-readable artifacts.
-- Use Postman to build requests, save a collection, and compare cURL vs Postman.
-- Explain API authentication and demonstrate 401 vs 200 with a bearer token example.
+- Use Bash to automate API calls with cURL and capture HTTP status codes.
+- Parse JSON responses with jq and extract specific fields.
+- Apply Linux scripting fundamentals (shebang, set -euo pipefail, functions, variables, traps).
+- Use Postman to explore requests and export runnable cURL and Python code.
+- Document API interactions via files (GitHub) and screenshots (Canvas).
 
 ## Prerequisites
 - Python 3.11 (via the provided dev container)
-- Accounts: GitHub
+- Accounts: GitHub, Canvas
 - Devices/Sandboxes: Public APIs (Dad Jokes, Deck of Cards)
+- Technical: - Linux/Bash basics: variables, functions, redirection, executable scripts.
+- cURL installed and usable from terminal.
+- jq installed for JSON parsing.
+- Postman (desktop or web) signed in.
+- Git and GitHub Classroom workflow (clone, commit, push, PR).
 
 ## Overview
-Learn API fundamentals using cURL and Postman. Practice plain vs JSON responses, verbose headers/status inspection, multi-step workflows with Deck of Cards, and a simple auth demo. Produce clean artifacts (raw outputs, pretty JSON, summaries, screenshots) and a Postman collection—skills you’ll reuse with Python `requests` in later labs.
+This lab builds core API muscle memory without Python: you'll write a Bash script that calls the Dad Jokes and Deck of Cards APIs using cURL, capture HTTP status codes, and parse JSON with jq into tidy text summaries. You'll also explore the same requests in Postman, then export their cURL and Python code snippets to include in your repository. GitHub collects your scripts, logs, and parsed artifacts; Canvas collects Postman screenshots and a short reflection.
 
 
-> **Before you begin:** Ensure the dev container opens and network access works (DNS + HTTPS). Confirm `curl` and `jq` versions; install `jq` if needed. Sign into Postman (desktop or web).
+> **Before you begin:** Verify tools: `bash --version`, `curl --version`, `jq --version`. If any are missing, install them before proceeding. Ensure you can write to `data/` and `logs/`.
 
 
 ## Resources
-- [Dad Jokes API](https://icanhazdadjoke.com/api) — Use Accept: application/json for JSON output.- [Deck of Cards API](https://deckofcardsapi.com/) — Create deck, then draw using the same deck_id.- [curl docs](https://curl.se/docs/manpage.html) — Flags: -v (verbose), -i (headers), -H (header), -o (output).- [HTTP status codes](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status)- [jq](https://stedolan.github.io/jq/)- [Postman](https://www.postman.com/)
+- [Dad Jokes API](https://icanhazdadjoke.com/api)- [Deck of Cards API](https://deckofcardsapi.com/)- [cURL Manual](https://curl.se/docs/manual.html)- [jq Manual](https://jqlang.github.io/jq/manual/)- [HTTP Status Codes (MDN)](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status)- [Postman Downloads](https://www.postman.com/downloads/)
 ## Deliverables
-- Consistent README with objectives, deliverables, grading, troubleshooting.
-- Stepwise instructions using cURL and Postman; logs + artifacts present.
+- GitHub: `scripts/api_lab.sh` (executable Bash script using curl + jq, with logging).
+- GitHub: Raw JSON saved under `data/` (see steps for filenames).
+- GitHub: Parsed summaries saved under `data/` (txt files).
+- GitHub: Postman exports saved as `data/postman_curl.txt` and `data/postman_python.py`.
+- GitHub: `logs/lab3.log` containing required markers.
+- Canvas: 3 Postman screenshots (Headers/Status/Body; Code Generator pane; Deck workflow).
+- Canvas: 2-3 sentence reflection (HTTP verbs and status codes).
 - Grading: **75 points**
 
 Follow these steps in order.
 
-> **Logging Requirement:** Write progress to `logs/curl_activity.log` as you complete each step.
+> **Logging Requirement:** Write progress to `logs/lab3.log` as you complete each step.
 
 ## Step 1 — Clone the Repository
-**Goal:** Get your Classroom repo locally.
+**Goal:** Get your starter locally.
 
 **What to do:**  
-Clone and `cd` into the repo.
+Clone your GitHub Classroom repo and `cd` into it. Create `scripts/`, `data/`, and `logs/` if missing.
+Initialize the log with `echo 'LAB3_START' >> logs/lab3.log`.
 
-**You’re done when:**  
-You’re in the repo folder and `git status` is clean.
+
+**You're done when:**  
+- Repo present; folders exist (`scripts/`, `data/`, `logs/`).
+- `LAB3_START` appears in `logs/lab3.log`.
+
 
 **Log marker to add:**  
 `[LAB3_START]`
 
-## Step 2 — Open a Dev Container
-**Goal:** Use the standardized environment.
+## Step 2 — Author Bash Script (Linux fundamentals)
+**Goal:** Create a robust script with functions, status capture, and traps.
 
 **What to do:**  
-Reopen in container; wait for install to complete.
+Create `scripts/api_lab.sh` with:
+  - Shebang: `#!/usr/bin/env bash`
+  - `set -euo pipefail` and `IFS=$'\n\t'`
+  - A `log()` function that appends to `logs/lab3.log`
+  - A `cleanup()` trap for EXIT to close out gracefully
+  - Variables for API URLs and output paths
+  - Use `curl -sS -H 'Accept: application/json' -w '%{http_code}' -o <file>` to capture body & status
+Make it executable: `chmod +x scripts/api_lab.sh`
+Log `BASH_OK` when the script validates prerequisites and starts.
 
-**You’re done when:**  
-Dev container status shows READY; tools run.
+
+**You're done when:**  
+- Script is executable and runs basic prechecks.
+- Log contains `BASH_OK`.
+
 
 **Log marker to add:**  
-`[[STEP 2] Dev Container Started]`
+`[BASH_OK]`
 
-## Step 3 — Install & Verify Tools
-**Goal:** Ensure `curl` and `jq` run; Postman installed.
+## Step 3 — Dad Jokes via cURL + jq
+**Goal:** Fetch JSON and parse fields.
 
 **What to do:**  
-Check versions; install `jq` if missing; sign into Postman.
+In the script:
+  1) Use cURL to GET `https://icanhazdadjoke.com/` with `Accept: application/json`
+     - Save body to `data/dad_joke.json`
+     - Save HTTP status to a variable; if not 200, log `CURL_JOKE_FAIL` and exit non-zero.
+  2) Use `jq -r '.id, .joke' data/dad_joke.json` to extract fields and save to `data/dad_joke.txt`
+Log `CURL_JOKE_OK` and `JQ_JOKE_OK` on success.
 
-**You’re done when:**  
-Log shows TOOL_OK: curl and TOOL_OK: jq.
+
+**You're done when:**  
+- `data/dad_joke.json` and `data/dad_joke.txt` exist and are non-empty.
+- Log contains `CURL_JOKE_OK` and `JQ_JOKE_OK`.
+
 
 **Log marker to add:**  
-`[TOOL_OK]`
+`[CURL_JOKE_OK, JQ_JOKE_OK]`
 
-## Step 4 — Warm-up: What is an HTTP API?
-**Goal:** Identify URL/method/headers/body/status.
+## Step 4 — Deck of Cards (create + draw) via cURL + jq
+**Goal:** Perform a multi-step API flow and summarize results.
 
 **What to do:**  
-Pick any public API and write down the parts (theory only).
+In the script:
+  1) Create a deck:
+     - `curl https://deckofcardsapi.com/api/deck/new/shuffle/?deck_count=1`
+       Save to `data/deck_create.json`; capture status; ensure 200 → log `DECK_CREATE_OK`.
+     - Extract `deck_id` with `jq -r '.deck_id'`.
+  2) Draw 2 cards:
+     - `curl https://deckofcardsapi.com/api/deck/$deck_id/draw/?count=2`
+       Save to `data/deck_draw.json`; capture status; ensure 200 → log `DECK_DRAW_OK`.
+     - Extract values/suits with `jq -r '.cards[] | "\(.value) of \(.suit)"'`
+       Save summary to `data/deck_summary.txt` (include `remaining` too).
+Log `JQ_DECK_OK` after all jq parsing completes.
 
-**You’re done when:**  
-You can name all five parts.
+
+**You're done when:**  
+- `data/deck_create.json`, `data/deck_draw.json`, and `data/deck_summary.txt` exist.
+- Log contains `DECK_CREATE_OK`, `DECK_DRAW_OK`, and `JQ_DECK_OK`.
+
 
 **Log marker to add:**  
-`[THEORY_OK]`
+`[DECK_CREATE_OK, DECK_DRAW_OK, JQ_DECK_OK]`
 
-## Step 5 — cURL #1 — Dad Jokes (plain)
-**Goal:** Make a simple GET.
+## Step 5 — Postman Exploration + Code Export
+**Goal:** Demonstrate tool fluency beyond the CLI.
 
 **What to do:**  
-Call Dad Jokes with no headers; save to `data/raw/dadjoke_plain.txt`.
+In Postman:
+  - Send Dad Jokes GET with `Accept: application/json`. Inspect Headers, Status, and JSON Body.
+  - Open the Code Generator and export both cURL and Python code snippets for the same request.
+  - Save those snippets to the repo as:
+      `data/postman_curl.txt`
+      `data/postman_python.py`
+Log `POSTMAN_EXPORT_CURL_OK` and `POSTMAN_EXPORT_PY_OK` once files are saved.
 
-**You’re done when:**  
-File exists and is non-empty.
+
+**You're done when:**  
+- Both files exist with meaningful content.
+- Log contains `POSTMAN_EXPORT_CURL_OK` and `POSTMAN_EXPORT_PY_OK`.
+
 
 **Log marker to add:**  
-`[REQUEST_OK: dadjoke_plain]`
+`[POSTMAN_EXPORT_CURL_OK, POSTMAN_EXPORT_PY_OK]`
 
-## Step 6 — cURL #2 — JSON
-**Goal:** Request JSON with Accept header.
+## Step 6 — Canvas Screenshots + Reflection
+**Goal:** Show understanding of HTTP anatomy and Postman.
 
 **What to do:**  
-Add `-H 'Accept: application/json'`; save to `data/raw/dadjoke_json.txt`.
+Upload to Canvas:
+  - Screenshot 1: Postman Dad Jokes request showing Headers, Status Code, and JSON Body.
+  - Screenshot 2: Postman Code Generator window (showing cURL or Python export).
+  - Screenshot 3: Deck of Cards create/draw workflow (URLs and JSON responses visible).
+  - Reflection (2-3 sentences): explain GET vs POST and compare status 200 vs 404.
+Log `CANVAS_SUBMITTED` locally after you submit to Canvas.
 
-**You’re done when:**  
-File exists and contains JSON.
+
+**You're done when:**  
+- All three screenshots and the reflection are submitted to Canvas.
+- Log contains `CANVAS_SUBMITTED`.
+
 
 **Log marker to add:**  
-`[REQUEST_OK: dadjoke_json]`
+`[CANVAS_SUBMITTED]`
 
-## Step 7 — cURL #3 — Verbose
-**Goal:** Inspect status code + headers.
-
-**What to do:**  
-Repeat JSON request with `-v`; save to `data/raw/dadjoke_verbose.txt`.
-
-**You’re done when:**  
-File shows headers and a status (expect 200).
-
-**Log marker to add:**  
-`[REQUEST_OK: dadjoke_verbose]`
-
-## Step 8 — cURL #4 — Pretty-print JSON
-**Goal:** Make JSON human-readable.
+## Step 7 — Wrap-up and Submit PR
+**Goal:** Finalize logs and artifacts.
 
 **What to do:**  
-Pretty-print the JSON to `data/reports/dadjoke_pretty.json` (e.g., `jq`).
+Ensure your script logs `LAB3_END` at completion (via `trap` or final step).
+Commit and push all changes. Open a pull request targeting `main`.
 
-**You’re done when:**  
-Pretty file exists; log `PRETTY_OK`.
 
-**Log marker to add:**  
-`[PRETTY_OK: data/reports/dadjoke_pretty.json]`
+**You're done when:**  
+- PR open; repo contains scripts, data, and logs.
+- `LAB3_END` present in `logs/lab3.log`.
 
-## Step 9 — cURL #5 — Key fields
-**Goal:** Extract a meaningful field.
-
-**What to do:**  
-Record `id` or `joke` in the log under `KEY_FIELDS`; include a SHA256 for one artifact.
-
-**You’re done when:**  
-Log shows `KEY_FIELDS` and `SHA256` lines.
-
-**Log marker to add:**  
-`[SHA256]`
-
-## Step 10 — cURL #6 — Deck of Cards (create + draw)
-**Goal:** Demonstrate multi-step workflow.
-
-**What to do:**  
-Create deck → save `data/raw/deck_newdeck.json` → extract `deck_id` → draw cards → save `data/raw/deck_draw.json` → summarize to `data/reports/deck_summary.txt`.
-
-**You’re done when:**  
-Both JSON files exist; summary has value + suit.
-
-**Log marker to add:**  
-`[REQUEST_OK: deck_create, REQUEST_OK: deck_draw]`
-
-## Step 11 — Postman intro
-**Goal:** Recreate cURL requests in a GUI.
-
-**What to do:**  
-Make a collection with Dad Jokes, Deck Create, Deck Draw; use a variable for `deck_id`.
-
-**You’re done when:**  
-Collection exported to `postman/API_Lab_Collection.json`.
-
-**Log marker to add:**  
-`[POSTMAN_OK]`
-
-## Step 12 — Postman ↔︎ cURL parity
-**Goal:** See equivalence of tools.
-
-**What to do:**  
-Export a request as cURL; compare flags/headers.
-
-**You’re done when:**  
-You can explain the mapping.
-
-**Log marker to add:**  
-`[PARITY_OK]`
-
-## Step 13 — Authentication demo
-**Goal:** Show 401 vs 200 with headers.
-
-**What to do:**  
-Call a safe demo endpoint without auth (expect 401) → add `Authorization: Bearer <token>` (expect 200).
-
-**You’re done when:**  
-Log shows `AUTH_401` and `AUTH_200` plus status lines.
-
-**Log marker to add:**  
-`[AUTH_401, AUTH_200]`
-
-## Step 14 — Wrap-up & Submit
-**Goal:** Ensure artifacts + logs match checklist.
-
-**What to do:**  
-Verify deliverables and screenshots; push branch and open PR.
-
-**You’re done when:**  
-Repo contains all required files; Actions run is green.
 
 **Log marker to add:**  
 `[LAB3_END]`
 
 
 ## FAQ
-**Q:** Do I need a real token for the auth demo?  
-**A:** No. Use a safe demo endpoint or a placeholder token to show 401 vs 200 behavior.
+**Q:** I got HTML instead of JSON from Dad Jokes.  
+**A:** Include the header `Accept: application/json` in your curl command.
 
-**Q:** Where do outputs go?  
-**A:** Raw under `data/raw/`, pretty JSON and summaries under `data/reports/`, logs under `logs/`, screenshots under `screens/`.
+**Q:** jq says 'command not found'.  
+**A:** Install jq (e.g., `sudo apt-get install -y jq`) or use your package manager.
 
-**Q:** How do I keep `deck_id` consistent?  
-**A:** Save the first response and copy the `deck_id` manually, or use a Postman variable.
+**Q:** Deck draw fails with 'invalid deck_id'.  
+**A:** Parse `deck_id` from the create response and reuse it literally in the draw URL.
 
 
 ## 🔧 Troubleshooting & Pro Tips
-**cURL not found**  
-*Symptom:* `curl: command not found`  
-*Fix:* Install cURL (`sudo apt install curl`) or use the dev container.
+**Capture HTTP status codes**  
+*Symptom:* You can't tell if the request succeeded.  
+*Fix:* Use `-w '%{http_code}'` and `-o` to separate body and status, then check if status == 200.
 
-**HTML instead of JSON**  
-*Symptom:* Dad Jokes request prints HTML  
-*Fix:* Add header `-H 'Accept: application/json'`.
+**Stable scripts**  
+*Symptom:* Silent failures.  
+*Fix:* Use `set -euo pipefail`, check variables, and exit non-zero on API errors; log markers.
 
-**No status code/headers**  
-*Symptom:* Output lacks status or headers  
-*Fix:* Use `-v` for verbose output or `-i` for headers.
-
-**401 Unauthorized**  
-*Symptom:* Auth demo returns 401  
-*Fix:* Add `Authorization: Bearer <token>` or use Postman’s Authorization tab.
-
-**deck_id not found**  
-*Symptom:* Draw step fails  
-*Fix:* Create a new deck first; copy `deck_id` or store it as a variable.
-
-**Unreadable JSON**  
-*Symptom:* One-line JSON  
-*Fix:* Pipe through `jq` or format in VS Code.
+**File output redirection**  
+*Symptom:* Nothing saved under data/.  
+*Fix:* Create directories first; use `>`, `>>`, or `tee` appropriately.
 
 
 ## Grading Breakdown
 | Step | Requirement | Points |
 |---|---|---|
-| Tooling | `curl` installed & verified (TOOL_OK: curl in log) | 5 |
-| Dad Jokes (plain) | Saved to `data/raw/dadjoke_plain.txt` | 5 |
-| Dad Jokes (JSON) | Saved to `data/raw/dadjoke_json.txt` with Accept header | 5 |
-| Verbose | Saved to `data/raw/dadjoke_verbose.txt` showing status + headers | 5 |
-| Pretty-print | Saved to `data/reports/dadjoke_pretty.json` | 4 |
-| Deck create | `data/raw/deck_newdeck.json` includes `deck_id` | 8 |
-| Deck draw | `data/raw/deck_draw.json` uses same `deck_id` | 8 |
-| Deck summary | `data/reports/deck_summary.txt` (value + suit) | 5 |
-| Logs | `logs/curl_activity.log` includes LAB3_START/LAB3_END, REQUEST_OK lines, SHA256, and 401 + 200 auth demo | 10 |
-| Postman collection | `postman/API_Lab_Collection.json` with required requests | 10 |
-| Screenshots | `screens/*` (3 screenshots) show correct requests & responses | 10 |
+| Step 2 | Bash fundamentals implemented (shebang, set -euo pipefail, functions, trap) | 10 |
+| Step 3 | Dad Jokes fetched; JSON + parsed text saved; markers `CURL_JOKE_OK`, `JQ_JOKE_OK` | 10 |
+| Step 4 | Deck created + drawn; parsed summary saved; markers `DECK_CREATE_OK`, `DECK_DRAW_OK`, `JQ_DECK_OK` | 15 |
+| Step 5 | Postman exports saved to repo; markers `POSTMAN_EXPORT_CURL_OK`, `POSTMAN_EXPORT_PY_OK` | 10 |
+| Step 6 | Canvas screenshots (3) + reflection submitted; marker `CANVAS_SUBMITTED` | 15 |
+| All steps | Log hygiene: start/end + required markers; consistent file outputs | 10 |
+| Setup | Tools verified; script runnable; marker `BASH_OK` present | 5 |
 | **Total** |  | **75** |
 
 ## Autograder Notes
-- Log file: `logs/curl_activity.log`
-- Required markers: `LAB3_START`, `[STEP 2] Dev Container Started`, `TOOL_OK: curl`, `TOOL_OK: jq`, `REQUEST_OK: dadjoke_plain`, `REQUEST_OK: dadjoke_json`, `REQUEST_OK: dadjoke_verbose`, `REQUEST_OK: deck_create`, `REQUEST_OK: deck_draw`, `STATUS_CODE: 200`, `STATUS_CODE: 401`, `AUTH_401`, `AUTH_200`, `SHA256`, `PRETTY_OK: data/reports/dadjoke_pretty.json`, `SUMMARY_OK: data/reports/deck_summary.txt`, `LAB3_END`
+- Log file: `logs/lab3.log`
+- Required markers: `LAB3_START`, `BASH_OK`, `CURL_JOKE_OK`, `JQ_JOKE_OK`, `DECK_CREATE_OK`, `DECK_DRAW_OK`, `JQ_DECK_OK`, `POSTMAN_EXPORT_CURL_OK`, `POSTMAN_EXPORT_PY_OK`, `CANVAS_SUBMITTED`, `LAB3_END`
 
 ## Submission Checklist
-- [ ] data/raw/dadjoke_plain.txt present
-- [ ] data/raw/dadjoke_json.txt present
-- [ ] data/raw/dadjoke_verbose.txt present
-- [ ] data/raw/deck_newdeck.json contains deck_id
-- [ ] data/raw/deck_draw.json present and matches deck_id
-- [ ] data/reports/dadjoke_pretty.json present
-- [ ] data/reports/deck_summary.txt present (value + suit)
-- [ ] logs/curl_activity.log includes LAB3_START/LAB3_END, REQUEST_OK, SHA256, 401 + 200
-- [ ] postman/API_Lab_Collection.json exported
-- [ ] screens/postman_dadjoke.png, screens/postman_deckdraw.png, screens/postman_auth.png present
+- [ ] GitHub: `scripts/api_lab.sh` is executable and runs without errors.
+- [ ] GitHub: `data/dad_joke.json` and `data/dad_joke.txt` exist.
+- [ ] GitHub: `data/deck_create.json`, `data/deck_draw.json`, and `data/deck_summary.txt` exist.
+- [ ] GitHub: `data/postman_curl.txt` and `data/postman_python.py` exist.
+- [ ] GitHub: `logs/lab3.log` contains all required markers.
+- [ ] Canvas: 3 Postman screenshots + reflection submitted.
+- [ ] PR is open to `main` before deadline.
