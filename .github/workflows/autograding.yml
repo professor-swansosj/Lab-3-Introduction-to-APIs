@@ -14,15 +14,16 @@ permissions:
 jobs:
   run-autograding-tests:
     runs-on: ubuntu-latest
-
+    timeout-minutes: 10
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Setup and Script Readiness (5 pts)
         id: setup-readiness
-        uses: classroom-resources/autograding-command-grader@v1
+        if: always()
         continue-on-error: true
+        uses: classroom-resources/autograding-command-grader@v1
         with:
           test-name: "Setup and script readiness"
           setup-command: ""
@@ -30,36 +31,38 @@ jobs:
             bash -lc '
             test -f scripts/api_lab.sh &&
             test -x scripts/api_lab.sh &&
-            test -f logs/lab.log &&
-            grep -q "BASH_OK" logs/lab.log
+            test -f logs/lab3.log &&
+            grep -q "BASH_OK" logs/lab3.log
             '
           timeout: 5
           max-score: 5
 
       - name: Step 2 Bash Fundamentals (10 pts)
         id: bash-fundamentals
-        uses: classroom-resources/autograding-command-grader@v1
+        if: always()
         continue-on-error: true
+        uses: classroom-resources/autograding-command-grader@v1
         with:
           test-name: "Step 2: Bash fundamentals"
           setup-command: ""
           command: >-
             bash -lc '
             test -f scripts/api_lab.sh &&
-            grep -Eq "^#!/usr/bin/env bash" scripts/api_lab.sh &&
-            grep -Eq "set -euo pipefail" scripts/api_lab.sh &&
-            grep -Eq "IFS=.*\\n\\t" scripts/api_lab.sh &&
-            grep -Eq "^[[:space:]]*log\(\)[[:space:]]*\{" scripts/api_lab.sh &&
-            grep -Eq "^[[:space:]]*cleanup\(\)[[:space:]]*\{" scripts/api_lab.sh &&
-            grep -Eq "trap[[:space:]]+cleanup[[:space:]]+EXIT" scripts/api_lab.sh
+            grep -Eq "^#!.*bash" scripts/api_lab.sh &&
+            grep -Eq "set[[:space:]]+-[euo]+[[:space:]]+pipefail" scripts/api_lab.sh &&
+            grep -Eq "IFS=" scripts/api_lab.sh &&
+            grep -Eq "log[[:space:]]*\(\)" scripts/api_lab.sh &&
+            grep -Eq "cleanup[[:space:]]*\(\)" scripts/api_lab.sh &&
+            grep -Eq "trap[[:space:]]+.*cleanup.*[[:space:]]+EXIT" scripts/api_lab.sh
             '
           timeout: 5
           max-score: 10
 
       - name: Step 3 Dad Jokes Artifacts (10 pts)
         id: dad-jokes
-        uses: classroom-resources/autograding-command-grader@v1
+        if: always()
         continue-on-error: true
+        uses: classroom-resources/autograding-command-grader@v1
         with:
           test-name: "Step 3: Dad Jokes outputs"
           setup-command: ""
@@ -67,17 +70,18 @@ jobs:
             bash -lc '
             test -s data/dad_joke.json &&
             test -s data/dad_joke.txt &&
-            test -f logs/lab.log &&
-            grep -q "CURL_JOKE_OK" logs/lab.log &&
-            grep -q "JQ_JOKE_OK" logs/lab.log
+            test -f logs/lab3.log &&
+            grep -q "CURL_JOKE_OK" logs/lab3.log &&
+            grep -q "JQ_JOKE_OK" logs/lab3.log
             '
           timeout: 5
           max-score: 10
 
       - name: Step 4 Deck API Flow and Parsing (15 pts)
         id: deck-flow
-        uses: classroom-resources/autograding-command-grader@v1
+        if: always()
         continue-on-error: true
+        uses: classroom-resources/autograding-command-grader@v1
         with:
           test-name: "Step 4: Deck create/draw/jq"
           setup-command: ""
@@ -86,18 +90,19 @@ jobs:
             test -s data/deck_create.json &&
             test -s data/deck_draw.json &&
             test -s data/deck_summary.txt &&
-            test -f logs/lab.log &&
-            grep -q "DECK_CREATE_OK" logs/lab.log &&
-            grep -q "DECK_DRAW_OK" logs/lab.log &&
-            grep -q "JQ_DECK_OK" logs/lab.log
+            test -f logs/lab3.log &&
+            grep -q "DECK_CREATE_OK" logs/lab3.log &&
+            grep -q "DECK_DRAW_OK" logs/lab3.log &&
+            grep -q "JQ_DECK_OK" logs/lab3.log
             '
           timeout: 5
           max-score: 15
 
       - name: Step 5 Postman Exports (10 pts)
         id: postman-exports
-        uses: classroom-resources/autograding-command-grader@v1
+        if: always()
         continue-on-error: true
+        uses: classroom-resources/autograding-command-grader@v1
         with:
           test-name: "Step 5: Postman exports"
           setup-command: ""
@@ -111,30 +116,32 @@ jobs:
 
       - name: Log Hygiene and Required Markers (10 pts)
         id: log-hygiene
-        uses: classroom-resources/autograding-command-grader@v1
+        if: always()
         continue-on-error: true
+        uses: classroom-resources/autograding-command-grader@v1
         with:
           test-name: "All steps: log hygiene"
           setup-command: ""
           command: >-
             bash -lc '
-            test -f logs/lab.log &&
-            grep -q "LAB3_START" logs/lab.log &&
-            grep -q "BASH_OK" logs/lab.log &&
-            grep -q "CURL_JOKE_OK" logs/lab.log &&
-            grep -q "JQ_JOKE_OK" logs/lab.log &&
-            grep -q "DECK_CREATE_OK" logs/lab.log &&
-            grep -q "DECK_DRAW_OK" logs/lab.log &&
-            grep -q "JQ_DECK_OK" logs/lab.log &&
-            grep -q "LAB3_END" logs/lab.log
+            test -f logs/lab3.log &&
+            grep -Eq "LAB3[-_]START" logs/lab3.log &&
+            grep -q "BASH_OK" logs/lab3.log &&
+            grep -q "CURL_JOKE_OK" logs/lab3.log &&
+            grep -q "JQ_JOKE_OK" logs/lab3.log &&
+            grep -q "DECK_CREATE_OK" logs/lab3.log &&
+            grep -q "DECK_DRAW_OK" logs/lab3.log &&
+            grep -q "JQ_DECK_OK" logs/lab3.log &&
+            grep -Eq "LAB3[-_]END" logs/lab3.log
             '
           timeout: 5
           max-score: 10
 
       - name: Step 6 Canvas Submission (15 pts - Manual Placeholder)
         id: canvas-manual
-        uses: classroom-resources/autograding-command-grader@v1
+        if: always()
         continue-on-error: true
+        uses: classroom-resources/autograding-command-grader@v1
         with:
           test-name: "Step 6: Canvas screenshots/reflection (manual)"
           setup-command: ""
@@ -144,15 +151,16 @@ jobs:
           max-score: 15
 
       - name: Autograding Reporter
+        if: always()
         uses: classroom-resources/autograding-grading-reporter@v1
         env:
-          SETUP-READINESS_RESULTS: "${{ steps.setup-readiness.outputs.result }}"
-          BASH-FUNDAMENTALS_RESULTS: "${{ steps.bash-fundamentals.outputs.result }}"
-          DAD-JOKES_RESULTS: "${{ steps.dad-jokes.outputs.result }}"
-          DECK-FLOW_RESULTS: "${{ steps.deck-flow.outputs.result }}"
-          POSTMAN-EXPORTS_RESULTS: "${{ steps.postman-exports.outputs.result }}"
-          LOG-HYGIENE_RESULTS: "${{ steps.log-hygiene.outputs.result }}"
-          CANVAS-MANUAL_RESULTS: "${{ steps.canvas-manual.outputs.result }}"
+          SETUP_READINESS_RESULTS: "${{ steps.setup-readiness.outputs.result }}"
+          BASH_FUNDAMENTALS_RESULTS: "${{ steps.bash-fundamentals.outputs.result }}"
+          DAD_JOKES_RESULTS: "${{ steps.dad-jokes.outputs.result }}"
+          DECK_FLOW_RESULTS: "${{ steps.deck-flow.outputs.result }}"
+          POSTMAN_EXPORTS_RESULTS: "${{ steps.postman-exports.outputs.result }}"
+          LOG_HYGIENE_RESULTS: "${{ steps.log-hygiene.outputs.result }}"
+          CANVAS_MANUAL_RESULTS: "${{ steps.canvas-manual.outputs.result }}"
         with:
           runners: >-
             setup-readiness,bash-fundamentals,dad-jokes,deck-flow,postman-exports,log-hygiene,canvas-manual

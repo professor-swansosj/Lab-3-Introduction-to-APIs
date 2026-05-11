@@ -21,15 +21,13 @@
 
 ## Table of Contents
 
-1. [Step 1
-2. [Step 2
-3. [Step 3
-4. [Step 4
-5. [Step 5
-6. [Step 6
-7. [Step 7
-8. [Step 8
-9. [Step 9
+1. [Step 1 — Clone the Repository](#step-1--clone-the-repository)
+2. [Step 2 — Author Bash Script (Linux fundamentals)](#step-2--author-bash-script-linux-fundamentals)
+3. [Step 3 — Dad Jokes via cURL + jq](#step-3--dad-jokes-via-curl--jq)
+4. [Step 4 — Deck of Cards (create + draw) via cURL + jq](#step-4--deck-of-cards-create--draw-via-curl--jq)
+5. [Step 5 — Postman Exploration + Code Export](#step-5--postman-exploration--code-export)
+6. [Step 6 — Canvas Screenshots + Reflection](#step-6--canvas-screenshots--reflection)
+7. [Step 7 — Wrap-up and Submit PR](#step-7--wrap-up-and-submit-pr)
 
 ## Overview
 
