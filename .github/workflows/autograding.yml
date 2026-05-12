@@ -162,5 +162,11 @@ jobs:
           LOG_HYGIENE_RESULTS: "${{ steps.log-hygiene.outputs.result }}"
           CANVAS_MANUAL_RESULTS: "${{ steps.canvas-manual.outputs.result }}"
         with:
-          runners: >-
-            setup-readiness,bash-fundamentals,dad-jokes,deck-flow,postman-exports,log-hygiene,canvas-manual
+          runners: |
+            setup-readiness
+            bash-fundamentals
+            dad-jokes
+            deck-flow
+            postman-exports
+            log-hygiene
+            canvas-manual
