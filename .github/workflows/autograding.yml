@@ -154,19 +154,12 @@ jobs:
         if: always()
         uses: classroom-resources/autograding-grading-reporter@v1
         env:
-          SETUP_READINESS_RESULTS: "${{ steps.setup-readiness.outputs.result }}"
-          BASH_FUNDAMENTALS_RESULTS: "${{ steps.bash-fundamentals.outputs.result }}"
-          DAD_JOKES_RESULTS: "${{ steps.dad-jokes.outputs.result }}"
-          DECK_FLOW_RESULTS: "${{ steps.deck-flow.outputs.result }}"
-          POSTMAN_EXPORTS_RESULTS: "${{ steps.postman-exports.outputs.result }}"
-          LOG_HYGIENE_RESULTS: "${{ steps.log-hygiene.outputs.result }}"
-          CANVAS_MANUAL_RESULTS: "${{ steps.canvas-manual.outputs.result }}"
+          SETUP-READINESS_RESULTS: "${{ steps.setup-readiness.outputs.result }}"
+          BASH-FUNDAMENTALS_RESULTS: "${{ steps.bash-fundamentals.outputs.result }}"
+          DAD-JOKES_RESULTS: "${{ steps.dad-jokes.outputs.result }}"
+          DECK-FLOW_RESULTS: "${{ steps.deck-flow.outputs.result }}"
+          POSTMAN-EXPORTS_RESULTS: "${{ steps.postman-exports.outputs.result }}"
+          LOG-HYGIENE_RESULTS: "${{ steps.log-hygiene.outputs.result }}"
+          CANVAS-MANUAL_RESULTS: "${{ steps.canvas-manual.outputs.result }}"
         with:
-          runners: |
-            setup-readiness
-            bash-fundamentals
-            dad-jokes
-            deck-flow
-            postman-exports
-            log-hygiene
-            canvas-manual
+          runners: setup-readiness,bash-fundamentals,dad-jokes,deck-flow,postman-exports,log-hygiene,canvas-manual
